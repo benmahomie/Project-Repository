@@ -1,0 +1,15 @@
+h1 {
+    text-align: center;
+    color: #430079;
+    text-decoration: underline solid #430079;
+    word-spacing: 4px;
+}
+
+h4 {
+    text-align: center;
+    font-style: italic;
+}
+
+body {
+    background-color: #E6FFFB;
+}
