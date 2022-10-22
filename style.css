@@ -13,3 +13,8 @@ h4 {
 body {
     background-color: #E6FFFB;
 }
+
+#reset {
+    text-align: center;
+    display: block;
+}
