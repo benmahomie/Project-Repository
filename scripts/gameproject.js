@@ -8,9 +8,7 @@ let canvasHeight = 400;
 function startGame() {
     gameCanvas.start();
 
-    player = new createPlayer(30, 30);
-
-    key = new createKey(30, 30)
+    reset();
 }
 
 //define gameCanvas according to canvas rules and specifications
@@ -27,8 +25,8 @@ let gameCanvas = {
 //create timer
 let timeElapsed = 0;
 
-//create key counter array for level timestamps
-let keyCounter = []
+//create array for level timestamps
+let timestamps = [0]
 
 //create player variable
 let player;
@@ -118,23 +116,22 @@ function createPlayer(width, height) {
             walkSpeed = 0;
         }
     }
-    this.detectCollision = function() {
-        let playerLeft = player.x;
-        let playerRight = player.x + player.width;
-        let keyLeft = key.x;
-        let keyRight = key.x + key.width;
     
-        let playerBottom = player.y + player.height;
-        let playerTop = player.y;
-        let keyTop = key.y;
-        let keyBottom = key.y + height;
-    
-        if (playerRight > keyLeft || playerLeft < keyRight || playerBottom > keyTop || playerTop < keyBottom) {
-            keyGet();
-            console.log("Success")
-        }
+}
+
+detectCollision = function() {
+    let playerCenterX = player.x + (player.width / 2);
+    let playerCenterY = player.y + (player.height / 2);
+    let keyLeft = key.x;
+    let keyRight = key.x + key.width;
+
+    let keyTop = key.y;
+    let keyBottom = key.y + key.height;
+
+    if ((playerCenterX > keyLeft && playerCenterX < keyRight) && (playerCenterY > keyTop && playerCenterY < keyBottom)) {
+        keyGet();
+        console.log("Success")
     }
-s    
 }
 
 //keyboard associated keys - LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, SPACE: 32
@@ -179,6 +176,7 @@ function updateCanvas() {
     player.movePlayer();
     player.draw();
     key.draw();
+    detectCollision();
     //timer add time (interval will run 50x a second, so timeElapsed should accurately count seconds since 50 * 0.02 == 1)
     timeElapsed += 0.02
 }
@@ -186,15 +184,23 @@ function updateCanvas() {
 //create key object (in random position)
 let key;
 
+//random start coordinate function for key
+function keyPositionRandom() {
+    
+let keyXPosition = Math.floor(Math.random() * 600);
 let keyYPosition = Math.floor(Math.random() * 400);
 
-let keyXPosition = Math.floor(Math.random() * 600);
+return {
+    x : keyXPosition,
+    y : keyYPosition
+}
+}
 
 function createKey(width, height) {
     this.width = width;
     this.height = height;
-    this.x = keyXPosition;
-    this.y = keyYPosition;
+    this.x = keyPositionRandom().x;
+    this.y = keyPositionRandom().y;
 
     //key draw event
     this.draw = function() {
@@ -205,35 +211,63 @@ function createKey(width, height) {
 }
 
 //keyGet function for key collision
-////remove key, display victory message, push time to keyCounter array and get new level
+////remove key, display victory message, push time to timestamps array and get new level
 let totalKeys = 0;
+//for totalling array
 function getSum(total, num){
     return total + num;
 };
+
+//silly graphics for victory screens
+function sillyGraphics() {
+    ctx.font = "30px Comic Sans MS";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText("square get", canvas.width/2, canvas.height/2);
+    async function boom() {
+        let myPromise = new Promise(function(resolve) {
+          setTimeout(function() {resolve(drawImage(image, dx, dy));}, 60);
+        });
+        document.getElementById("demo").innerHTML = await myPromise;
+    boom();
+}
+
 function keyGet() {
+    sillyGraphics();
     totalKeys += 1;
-    if (keyCounter.length == 0) {
-        timeElapsedTillNow = timeElapsed;
-    }
-    else {
-        let timeElapsedTillNow = keyCounter.reduce(getSum);
-    }
-    keyCounter.unshift(timeElapsed - timeElapsedTillNow);
+    //total time spent playing as of last level completion
+    timeElapsedTillNow = timestamps.reduce(getSum);
+    //pushes record of total time spent on this level to array beginning
+    timestamps.unshift(timeElapsed - timeElapsedTillNow);
     console.log(totalKeys);
-    //new level
-    startGame();
+    //update scores
+    updateHTMLScores(totalKeys, skipsTotal);
+    //reset key
+    reset();
 }
-//Win button (skip) function
+
+function updateHTMLScores(keyTotal, skipsTotal) {
+    document.getElementById("keyTotal").innerText = "Total Squares: " + keyTotal;
+    document.getElementById("skipsTotal").innerText = "Total Skips Used: " + skipsTotal;
+}
+
+//Skip button function
+let skipsTotal = 0;
 function skipLevel() {
-    keyGet();
-    console.log("skipped level");
+    skipsTotal += 1;
+    //reset key
+    reset();
 }
 
-//play music on loop?
+function reset () { 
+    key = new createKey(30, 30);
+    player = new createPlayer(30,30);
+    updateHTMLScores(totalKeys, skipsTotal);
+}
 
-//"-Win Button-"
+//"-Skip Level Button-"
 let button = document.getElementById("skip");
-button.addEventListener("click", skipLevel());
+button.addEventListener("click", skipLevel);
 
 //quit function that prints levels completed and the time each one took
 function quit() {
