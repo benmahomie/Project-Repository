@@ -35,14 +35,7 @@ let playerXPosition = 100;
 
 let fallSpeed = 0;
 
-//jump stuff
-let isJumping = false;
-
-let jumpSpeed = 0;
-
-function resetJump() {
-
-}
+let walkSpeed = 0;
 
 function createPlayer(width, height) {
     this.width = width;
@@ -57,76 +50,93 @@ function createPlayer(width, height) {
     ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 
-    //fall velocity logic
+    //gravity velocity logic
     this.makeFall = function() {
         this.y += fallSpeed;
-        fallSpeed += 0.1;
+        switch ((this.x >= 100 && this.x < 200) || (this.x >= 300 && this.x < 400) || (this.x >= 500 && this.x < 600)) {
+            case true:
+                fallSpeed += 0.1;
+                break;
+            case false:
+                fallSpeed += -0.1;
+                break;
+            default:
+                fallSpeed += 0;
+        }
         //collision function call
         this.stopPlayer();
         //
     }
 
-    //define ground and continually update player y position to screen bottom when collision is active
-    this.stopPlayer = function() {
-        let ground = canvasHeight - this.height;
-        if (this.y > ground) {
-            this.y = ground;
+    //player left/right movement
+    this.movePlayer = function() {
+        this.x += walkSpeed
+        if (controller.right == true) {
+            walkSpeed += 0.1;
+            
+        }
+        if (controller.left == true) {
+            walkSpeed += -0.1;
         }
     }
 
-    this.jump = function() {
-        if (isJumping == true) {
-            this.y += 0.1;
+    //define ground and continually update player y position to screen edge when x/y attempts to pass
+    this.stopPlayer = function() {
+        let ground = canvasHeight - this.height;
+        if (this.y > ground && Math.sign(fallSpeed) == 1) {
+            this.y = ground;
+        }
+
+        let ceiling = 0;
+        if (this.y < ceiling && Math.sign(fallSpeed) == -1) {
+            this.y = ceiling;
+        }
+
+        let leftBorder = 0;
+        if (this.x < leftBorder) {
+            this.x = leftBorder;
+        }
+
+        let rightBorder = canvasWidth;
+        if (this.x > canvasWidth) {
+            this.x = rightBorder;
         }
     }
 }
 
-//player movement (erase and redraw canvas)
+//keyboard associated keys - LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, SPACE: 32
+//event listeners for player control
+let controller = {
+    left: false,
+    right: false,
+    keyListener: function (event) {
+      let key_state = (event.type == "keydown") ? true : false;
+      switch (event.keyCode) {
+        case 37: // left arrow
+          controller.left = key_state;
+          break;
+        case 39: // right arrow
+          controller.right = key_state;
+          break;
+      }
+    }
+  };
+
+window.addEventListener("keydown", controller.keyListener)
+window.addEventListener("keyup", controller.keyListener);
+
+
+//Canvas updates
 let interval = setInterval(updateCanvas, 20);
 function updateCanvas() {
     //clear canvas
     ctx = gameCanvas.context;
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    //run player physics logic
+    //run and draw updates to player/key physics logic
     player.makeFall();
+    player.movePlayer();
     player.draw();
-    player.jump();
     key.draw();
-}
-
-//input config
-//jump
-document.addEventListener('keydown', function(ev) { return onkey(ev, ev.keyCode, )}, true);
-document.addEventListener('keyUP', onkeyup, true);
-
-let KEY = {
-    LEFT: 37,
-    UP: 38,
-    RIGHT: 39,
-    DOWN: 40,
-    SPACE: 32
-}
-
-function onkey(ev, key, pressed) {
-    switch(key) {
-        case KEY.LEFT : player.input.left = pressed; ev.preventDefaut();
-    }
-}
-
-//collision detection
-function detectCollision() {
-    let playerLeft = player.x;
-    let playerRight = player.x + player.width;
-    let keyLeft = key.x;
-    let keyRight = key.x + key.width;
-
-    let playerBottom = player.y + player.height;
-    let keyTop = key.y;
-
-    if (playerRight > keyLeft && playerLeft < keyLeft && playerBottom > keyTop) {
-        audio.play();
-        keyCounter.unshift("test")
-    }
 }
 
 //create key object (random)
@@ -151,18 +161,29 @@ function createKey(width, height) {
 }
 
 //key audio
-let audio = new Audio('key_get.mp3');
+////let audio = new Audio('key_get.mp3');
 
 //keyGet function for key collision
-function keyGet() {
-    audio.play();
-
-}
+////remove key, display victory message, log time to array and reset game
 
 //create timer
 
 //play music on loop?
 
-//create collision event (sfx, new level, append elapsed time to array)
+//collision detection
+function detectCollision() {
+    let playerLeft = player.x;
+    let playerRight = player.x + player.width;
+    let keyLeft = key.x;
+    let keyRight = key.x + key.width;
+
+    let playerBottom = player.y + player.height;
+    let keyTop = key.y;
+
+    if (playerRight > keyLeft && playerLeft < keyLeft && playerBottom > keyTop) {
+        audio.play();
+        keyCounter.unshift("test")
+    }
+}
 
 //quit function that prints levels completed and the time each one took
