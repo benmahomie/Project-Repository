@@ -128,9 +128,11 @@ detectCollision = function() {
     let keyTop = key.y;
     let keyBottom = key.y + key.height;
 
-    if ((playerCenterX > keyLeft && playerCenterX < keyRight) && (playerCenterY > keyTop && playerCenterY < keyBottom)) {
+    let playerInKey = ((playerCenterX > keyLeft && playerCenterX < keyRight) && (playerCenterY > keyTop && playerCenterY < keyBottom))
+    
+    if (playerInKey) {
         keyGet();
-        console.log("Success")
+        console.log("Success");
     }
 }
 
@@ -187,8 +189,8 @@ let key;
 //random start coordinate function for key
 function keyPositionRandom() {
     
-let keyXPosition = Math.floor(Math.random() * 600);
-let keyYPosition = Math.floor(Math.random() * 400);
+let keyXPosition = Math.floor(Math.random() * 570);
+let keyYPosition = Math.floor(Math.random() * 370);
 
 return {
     x : keyXPosition,
@@ -220,19 +222,33 @@ function getSum(total, num){
 
 //silly graphics for victory screens
 function sillyGraphics() {
-    ctx.font = "30px Comic Sans MS";
-    ctx.fillStyle = "white";
-    ctx.textAlign = "center";
-    ctx.fillText("square get", canvas.width/2, canvas.height/2);
-    async function boom() {
-        let myPromise = new Promise(function(resolve) {
-          setTimeout(function() {resolve(drawImage(image, dx, dy));}, 60);
-        });
-        document.getElementById("demo").innerHTML = await myPromise;
-    boom();
+    let first = 1;
+    let last = 17;
+
+    let img = new Image;
+
+    img.onload = function(){
+    gameCanvas.context.clearRect(0, 0, gameCanvas.context.canvas.width, gameCanvas.context.canvas.height);
+    gameCanvas.context.drawImage(img, player.x, player.y);
+    };
+
+    myImageNum = first;
+
+    let timer = setInterval(function() {
+    if (myImageNum > last){
+        clearInterval(timer);
+        console.log("animation run")
+    }
+    else {
+        //img.src = "https://github.com/benmahomie/Project-Repository/blob/main/splosionFrames/"+(myImageNum)+".png?raw=true";
+        img.src = "splosionFrames/"+(myImageNum)+".png";
+        myImageNum += 1;}}, 18);
 }
 
 function keyGet() {
+    //let audio = new Audio("deltarune-explosion.ogg");
+    let audio = new Audio("https://github.com/benmahomie/Project-Repository/blob/main/deltarune-explosion.ogg?raw=true");
+    audio.play();
     sillyGraphics();
     totalKeys += 1;
     //total time spent playing as of last level completion
