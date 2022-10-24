@@ -26,7 +26,7 @@ let gameCanvas = {
 let timeElapsed = 0;
 
 //create array for level timestamps
-let timestamps = [0]
+let timestamps = []
 
 //create player variable
 let player;
@@ -86,6 +86,7 @@ function createPlayer(width, height) {
         if (controller.left == true) {
             walkSpeed += -0.3;
         }
+        //drag
         walkSpeed *= 0.95;
     }
 
@@ -215,10 +216,6 @@ function createKey(width, height) {
 //keyGet function for key collision
 ////remove key, display victory message, push time to timestamps array and get new level
 let totalKeys = 0;
-//for totalling array
-function getSum(total, num){
-    return total + num;
-};
 
 //silly graphics for victory screens
 function sillyGraphics() {
@@ -252,9 +249,8 @@ function keyGet() {
     sillyGraphics();
     totalKeys += 1;
     //total time spent playing as of last level completion
-    timeElapsedTillNow = timestamps.reduce(getSum);
     //pushes record of total time spent on this level to array beginning
-    timestamps.unshift(timeElapsed - timeElapsedTillNow);
+    timestamps.unshift((Math.round(timeElapsed * 100) / 100).toFixed(2));
     console.log(totalKeys);
     //update scores
     updateHTMLScores(totalKeys, skipsTotal);
@@ -264,6 +260,8 @@ function keyGet() {
 
 function updateHTMLScores(keyTotal, skipsTotal) {
     document.getElementById("keyTotal").innerText = "Total Squares: " + keyTotal;
+    document.getElementById("fastestGet").innerText = "Fastest Get: " + Math.min.apply(Math, timestamps) + " sec.";
+    document.getElementById("slowestGet").innerText = "Slowest Get: " + Math.max.apply(Math, timestamps) + " sec.";
     document.getElementById("skipsTotal").innerText = "Total Skips Used: " + skipsTotal;
 }
 
@@ -271,6 +269,8 @@ function updateHTMLScores(keyTotal, skipsTotal) {
 let skipsTotal = 0;
 function skipLevel() {
     skipsTotal += 1;
+    let skipAudio = new Audio("https://github.com/benmahomie/Project-Repository/blob/main/key_get.ogg?raw=true");
+    skipAudio.play();
     //reset key
     reset();
 }
@@ -279,6 +279,8 @@ function reset () {
     key = new createKey(30, 30);
     player = new createPlayer(30,30);
     updateHTMLScores(totalKeys, skipsTotal);
+    timeElapsed = 0;
+    console.log(timestamps);
 }
 
 //"-Skip Level Button-"
